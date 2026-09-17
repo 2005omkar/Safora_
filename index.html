@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Content-Security-Policy: restricts which origins scripts, styles,
+         images, and network requests can come from — the main browser-side
+         defense against injected/malicious script execution (XSS).
+         'unsafe-inline' on script-src is kept here ONLY because Vite's dev
+         server (React Fast Refresh) injects a small inline script — it is
+         NOT needed for the production build. Production should serve a
+         stricter policy (script-src 'self' only, no 'unsafe-inline') via a
+         real HTTP header from your host — see SECURITY.md. A <meta> tag
+         also can't set frame-ancestors (clickjacking protection) or
+         X-Content-Type-Options; those must be real HTTP headers too. -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.gstatic.com https://*.googleusercontent.com;
+      connect-src 'self' https://*.googleapis.com https://*.google.com https://router.project-osrm.org;
+      frame-src 'self' https://*.firebaseapp.com;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    " />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+    <title>SAFORA — Stay Safe. Stay Aware.</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

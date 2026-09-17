@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────────────────
+// Safora — Firestore security rules
+//
+// DEPLOY THIS: rules in this repo do nothing until you run
+//   firebase deploy --only firestore:rules
+// A missing rules file (or "test mode" defaults) means an OPEN database —
+// anyone on the internet can read or write everything.
+//
+// Model: every signed-in device (including anonymous auth, which this app
+// uses for location sharing) gets request.auth.uid. Documents that
+// represent "this device/user's own data" are keyed BY that uid, so a
+// client can only ever write to its own document, never anyone else's.
+// ─────────────────────────────────────────────────────────────────────────
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidLiveLocation(data) {
+      return data.keys().hasAll(['lat', 'lng', 'updatedAt'])
+        && data.lat is number && data.lat >= -90 && data.lat <= 90
+        && data.lng is number && data.lng >= -180 && data.lng <= 180
+        && (!('accuracy' in data) || data.accuracy == null || data.accuracy is number)
+        && data.updatedAt == request.time; // must use serverTimestamp(), not a client-supplied value
+    }
+
+    // liveLocations/{uid} — one document per authenticated device, written
+    // by src/context/LocationContext.tsx. Only the owning uid may create,
+    // update, or delete its own presence doc. Reads are allowed to any
+    // signed-in user (anonymous auth counts) so the live crowd/heatmap
+    // feature works, but never to a fully unauthenticated request.
+    match /liveLocations/{uid} {
+      allow read: if request.auth != null;
+
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && isValidLiveLocation(request.resource.data);
+
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Everything else: deny by default. Add new collections here explicitly
+    // (with the same "owner writes own doc + validated schema" pattern)
+    // rather than opening this up broadly.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
